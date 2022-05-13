@@ -33,15 +33,27 @@ if __name__ == '__main__':
     text_date_coords_x = 320
     text_date_coords_y = 915
 
-    badge_font = "fonts/Helvetica.ttc"
-
-    badge_font_name = ImageFont.truetype(badge_font, 100)
-    badge_font_date = ImageFont.truetype(badge_font, 50)
+    # Fonts from
+    badge_font = "fonts/Styrene/StyreneB-Medium.otf"
 
     badge_template = Image.open('images/boom-badges-standard-template-bkgnd-2022-05-13-02.png')
     staff_photo = Image.open('images/55E26909-7810-4423-9C75-F2DFA6BFEB5F.JPG')
-    staff_name = "Geoff"
+    staff_name = "Tasmukanova"
     badge_date = date.today().strftime("%b %d, %Y")
+
+    staff_name_len = len(staff_name)
+    staff_name_font_size = 100  # Default
+    if staff_name_len <= 3:
+        staff_name_font_size = 150
+    if (staff_name_len >= 7) and (staff_name_len <= 10):
+        staff_name_font_size = 80
+    if (staff_name_len >= 11) and (staff_name_len <= 16):
+        staff_name_font_size = 70
+    if staff_name_len >= 17:
+        staff_name_font_size = 60
+
+    badge_font_name = ImageFont.truetype(badge_font, staff_name_font_size)
+    badge_font_date = ImageFont.truetype(badge_font, 50)
 
     staff_photo_input_width, staff_photo_input_height = staff_photo.size
 
@@ -70,7 +82,7 @@ if __name__ == '__main__':
                               (0, 0, 0),
                               font=badge_font_name)
 
-    badge_composite_draw.text((int(text_date_coords_x - (text_date_width / 2)),  # Center the name
+    badge_composite_draw.text((int(text_date_coords_x - (text_date_width / 2)),  # Center the date
                                text_date_coords_y),
                               badge_date,
                               (0, 0, 0),
