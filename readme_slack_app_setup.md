@@ -14,7 +14,7 @@
 ### Adding Bot Token Scopes
 * "Oauth and permissions" section from the left menu
 * Add Bot Token Scopes:
-  * im:history, im:read, im:write
+  * im:history, im:read, im:write, files:read
   * Install to workspace
   * Approve scopes
   * Copy the Oauth Token
