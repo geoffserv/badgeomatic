@@ -72,6 +72,9 @@ def process(client: SocketModeClient, req: SocketModeRequest):
         response = SocketModeResponse(envelope_id=req.envelope_id)
         client.send_socket_mode_response(response)
 
+        badgeomatic_globals.debugger.message("INFO",
+                                             "Bingo: {}".format(req.payload))
+
         # Add a reaction to the message if it's a new message
         if req.payload["event"]["type"] == "message" \
             and req.payload["event"].get("subtype") is None:
