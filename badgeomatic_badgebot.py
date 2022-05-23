@@ -127,7 +127,26 @@ class Badgebot(object):
                                       badge_date,
                                       (0, 0, 0),
                                       font=badge_font_date)
-            badge_composite.show()
+
+            filename_datestamp = date.today().strftime("%Y-%m-%d-%X")
+            filename = "{}{}-{}.jpg".format(self.badge_image_path,
+                                            badge_name,
+                                            filename_datestamp)
+
+            badgeomatic_globals.debugger.message("INFO",
+                                                 "Badge file: {}".format(
+                                                     filename))
+
+            badge_composite.format = "JPG"
+
+            badge_composite.save(filename)
+
+            # Re-open the saved file
+            file_badge = Image.open(filename)
+            file_badge.show()
+            # badge_composite.show()
+
+            self.save_badge_info(badge_name)
 
         except Exception as e:
             badgeomatic_globals.debugger.message("EXCP", e)

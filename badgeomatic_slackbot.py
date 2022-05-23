@@ -85,12 +85,12 @@ class Slackbot(object):
 
             request = requests.get(attachment_url, headers=request_headers)
 
-            filename_datestamp = date.today().strftime("%Y-%m-%d-%H-%M-%S")
+            filename_datestamp = date.today().strftime("%Y-%m-%d-%X")
             filename = "{}{}-{}.jpg".format(self.portrait_image_path,
                                             badge_name,
                                             filename_datestamp)
             badgeomatic_globals.debugger.message("INFO",
-                                                 "filename: {}".format(
+                                                 "Portrait file: {}".format(
                                                      filename))
 
             assert not os.path.exists(filename), badgeomatic_globals.debugger.\
