@@ -9,6 +9,9 @@ portrait_images/
 # Config files
 *.cfg
 
+# This keeps getting caught
+image_from_ios.jpg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
