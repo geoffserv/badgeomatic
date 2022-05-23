@@ -59,5 +59,3 @@ if __name__ == '__main__':
 
     slackbot = badgeomatic_slackbot.Slackbot()
     slackbot.run()
-
-

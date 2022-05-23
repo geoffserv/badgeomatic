@@ -7,6 +7,7 @@ Requirements
 badgeomatic_globals : program-wide globals, debugger, etc
 PIL : Pillow for graphic manipulation
 datetime : dates.. and times
+os : to handle local filesystem for downloads
 
 Classes
 -------
@@ -16,6 +17,7 @@ BadgeBot : generates badge layouts based on info from the slackbot
 import badgeomatic_globals
 from PIL import Image, ImageFont, ImageDraw
 from datetime import date
+import os
 
 
 class Badgebot(object):
@@ -44,67 +46,88 @@ class Badgebot(object):
         self.badge_template = Image.open(badgeomatic_globals.config[
                                              'badgeomatic'][
                                              'BadgeTemplate'])
+        # Here's where we'll store the badge images
+        self.badge_image_path = badgeomatic_globals.config['badgeomatic'][
+            'BadgeImageDir']
+
+        # Create it if it doesn't exist
+        try:
+            if not os.path.exists(self.badge_image_path):
+                os.makedirs(self.badge_image_path)
+                badgeomatic_globals.\
+                    debugger.message("INFO",
+                                     "Created folder {}".format(
+                                         self.badge_image_path))
+        except Exception as e:
+            badgeomatic_globals.debugger.message("EXCP", e)
 
     def print_badge(self, badge_name, photo_path):
-        staff_photo = Image.open(photo_path)
-        staff_name = badge_name
-        badge_date = date.today().strftime("%b %d, %Y")
+        try:
+            # Open the staff photo
+            staff_photo = Image.open(photo_path)
+            staff_name = badge_name
 
-        staff_name_len = len(staff_name)
-        staff_name_font_size = 100  # Default
-        if staff_name_len <= 3:
-            staff_name_font_size = 150
-        if (staff_name_len >= 7) and (staff_name_len <= 10):
-            staff_name_font_size = 80
-        if (staff_name_len >= 11) and (staff_name_len <= 16):
-            staff_name_font_size = 70
-        if staff_name_len >= 17:
-            staff_name_font_size = 60
+            # Date format for the printed date part of the badge
+            badge_date = date.today().strftime("%b %d, %Y")
 
-        badge_font_name = ImageFont.truetype(self.badge_font,
-                                             staff_name_font_size)
-        badge_font_date = ImageFont.truetype(self.badge_font, 50)
+            # Some dumb name/font size scaling
+            staff_name_len = len(staff_name)
+            staff_name_font_size = 100  # Default
+            if staff_name_len <= 3:
+                staff_name_font_size = 150
+            if (staff_name_len >= 7) and (staff_name_len <= 10):
+                staff_name_font_size = 80
+            if (staff_name_len >= 11) and (staff_name_len <= 16):
+                staff_name_font_size = 70
+            if staff_name_len >= 17:
+                staff_name_font_size = 60
 
-        staff_photo_input_width, staff_photo_input_height = staff_photo.size
+            badge_font_name = ImageFont.truetype(self.badge_font,
+                                                 staff_name_font_size)
+            badge_font_date = ImageFont.truetype(self.badge_font, 50)
 
-        # Assumes portrait photos, so width < height
-        staff_photo_crop_coords = (0,
-                                   int((staff_photo_input_height / 2) -
-                                       (staff_photo_input_width / 2)),
-                                   staff_photo_input_width,
-                                   int((staff_photo_input_height / 2) +
-                                       (staff_photo_input_width / 2)))
+            staff_photo_input_width, staff_photo_input_height = staff_photo.\
+                size
 
-        staff_photo = staff_photo.crop(staff_photo_crop_coords)
+            # Assumes portrait photos, so width < height
+            staff_photo_crop_coords = (0,
+                                       int((staff_photo_input_height / 2) -
+                                           (staff_photo_input_width / 2)),
+                                       staff_photo_input_width,
+                                       int((staff_photo_input_height / 2) +
+                                           (staff_photo_input_width / 2)))
 
-        staff_photo = staff_photo.resize((self.staff_photo_width,
-                                          self.staff_photo_width))
+            # Graphic compositing block
+            staff_photo = staff_photo.crop(staff_photo_crop_coords)
 
-        badge_composite = Image.new('RGB',
-                                    (self.badge_width, self.badge_height),
-                                    (0, 0, 0))
+            staff_photo = staff_photo.resize((self.staff_photo_width,
+                                              self.staff_photo_width))
 
-        badge_composite.paste(self.badge_template, (0, 0))
-        badge_composite.paste(staff_photo, self.staff_photo_coords)
+            badge_composite = Image.new('RGB',
+                                        (self.badge_width, self.badge_height),
+                                        (0, 0, 0))
 
-        text_name_width = badge_font_name.getlength(staff_name)
-        text_date_width = badge_font_date.getlength(badge_date)
+            badge_composite.paste(self.badge_template, (0, 0))
+            badge_composite.paste(staff_photo, self.staff_photo_coords)
 
-        badge_composite_draw = ImageDraw.Draw(badge_composite)
-        badge_composite_draw.text((int(self.text_name_coords_x -
-                                       (text_name_width / 2)),
-                                   self.text_name_coords_y),
-                                  staff_name,
-                                  (0, 0, 0),
-                                  font=badge_font_name)
+            text_name_width = badge_font_name.getlength(staff_name)
+            text_date_width = badge_font_date.getlength(badge_date)
 
-        badge_composite_draw.text((int(self.text_date_coords_x -
-                                       (text_date_width / 2)),
-                                   self.text_date_coords_y),
-                                  badge_date,
-                                  (0, 0, 0),
-                                  font=badge_font_date)
+            badge_composite_draw = ImageDraw.Draw(badge_composite)
+            badge_composite_draw.text((int(self.text_name_coords_x -
+                                           (text_name_width / 2)),
+                                       self.text_name_coords_y),
+                                      staff_name,
+                                      (0, 0, 0),
+                                      font=badge_font_name)
 
-        badge_composite.show()
+            badge_composite_draw.text((int(self.text_date_coords_x -
+                                           (text_date_width / 2)),
+                                       self.text_date_coords_y),
+                                      badge_date,
+                                      (0, 0, 0),
+                                      font=badge_font_date)
+            badge_composite.show()
 
-
+        except Exception as e:
+            badgeomatic_globals.debugger.message("EXCP", e)

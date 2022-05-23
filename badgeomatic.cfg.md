@@ -28,4 +28,6 @@ BadgeFont = fonts/badgefont.otf
 
 BadgeTemplate = images/bkgndtemplate.png
 
-BadgeImageDir = badgeimages/
+PortraitImageDir = portrait_images/
+
+BadgeImageDir = badge_images/
