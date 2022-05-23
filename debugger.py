@@ -112,4 +112,3 @@ class Debugger(object):
                      "Runtime: {} seconds".format((
                              self.messages[-1]["timestamp"] -
                              self.messages[0]["timestamp"])))
-

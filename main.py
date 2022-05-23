@@ -11,8 +11,8 @@ And sends the print job to the HID Fargo printer
 
 Requirements
 ------------
-Pillow : Python graphic library
-datetime : dates.. and times
+badgeomatic_globals : program-wide globals, debugger, etc
+badgeomatic_slackbot : connect to slack and fire off the badgebot
 atexit : trap exits
 
 Functions
@@ -59,5 +59,3 @@ if __name__ == '__main__':
 
     slackbot = badgeomatic_slackbot.Slackbot()
     slackbot.run()
-
-
