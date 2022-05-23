@@ -4,7 +4,9 @@ This module composites inputs from the slackbot and generates a badge
 
 Requirements
 ------------
-slack-sdk : for slack things
+badgeomatic_globals : program-wide globals, debugger, etc
+PIL : Pillow for graphic manipulation
+datetime : dates.. and times
 
 Classes
 -------

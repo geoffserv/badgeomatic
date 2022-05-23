@@ -1,6 +1,9 @@
 # Don't capture our templates or photos or fonts or whatever
-/images/
-/fonts/
+images/
+fonts/
+
+# Don't commit any badges we generate
+badgeimages/
 
 # Config files
 *.cfg

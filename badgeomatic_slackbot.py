@@ -8,7 +8,11 @@ the slack-side bot & keys
 
 Requirements
 ------------
-slack-sdk : for slack things
+badgeomatic_globals : program-wide globals, debugger, etc
+badgeomatic_badgebot : receives photo & makes badge
+slack-sdk : slack_sdk is for slack things
+requests : for web requests, used to download the attachment
+os : to handle local filesystem for downloads
 
 Classes
 -------
@@ -30,6 +34,9 @@ import os
 
 class Slackbot(object):
     def __init__(self):
+        # Set up a Socket Mode Client.  We'll receive updates from slack
+        # via this socket.  It's an okay mechanism for very small scale use
+        # of this bot
         self.client = SocketModeClient(
             # This app-level token is for establishing a connection
             # Looks like: xapp-A111-222-xyz
@@ -40,27 +47,54 @@ class Slackbot(object):
             web_client=WebClient(
                 token=badgeomatic_globals.config['badgeomatic']
                 ['SlackTokenOA'])
-            )
-        self.badgebot = badgeomatic_badgebot.Badgebot()
+        )
 
-    def download_attachment(self, attachment_url):
+        # Here's where we'll store the badge images
+        self.badge_image_path = badgeomatic_globals.config['badgeomatic'][
+            'BadgeImageDir']
+
+        # Create it if it doesn't exist
         try:
-            resp = requests.get(attachment_url,
-                               headers={'Authorization':
-                                        'Bearer %s' %
-                                        badgeomatic_globals.config[
-                                                'badgeomatic']['SlackTokenOA']})
+            if not os.path.exists(self.badge_image_path):
+                os.makedirs(self.badge_image_path)
+        except Exception as e:
+            badgeomatic_globals.debugger.message("EXCP", e)
 
-            fname = os.path.basename(urlparse(attachment_url).path)
+        # Lets make sure it exists
+        assert os.path.exists(self.badge_image_path), \
+            badgeomatic_globals.debugger.message("ASRT",
+                                                 "Can't find badge folder {}".
+                                                 format(self.badge_image_path))
+
+        # Set ourself up a badgebot
+        try:
+            self.badgebot = badgeomatic_badgebot.Badgebot()
+        except Exception as e:
+            badgeomatic_globals.debugger.message("EXCP", e)
+
+    def download_attachment(self, attachment_url, badge_name):
+        try:
+            request_headers = {'Authorization': 'Bearer %s' %
+                                                badgeomatic_globals.config[
+                                                 'badgeomatic'][
+                                                 'SlackTokenOA']}
+            request = requests.get(attachment_url, headers=request_headers)
+            filename = os.path.basename(urlparse(attachment_url).path)
             badgeomatic_globals.debugger.message("INFO",
-                                                 "fname: {}".format(
-                                                     fname))
-            assert not os.path.exists(fname), print(
-                "File already exists. Please remove/rename and re-run")
-            out_file = open(fname, mode="wb+")
-            out_file.write(resp.content)
-            out_file.close()
-            return fname
+                                                 "filename: {}".format(
+                                                     filename))
+
+            assert not os.path.exists(filename), badgeomatic_globals.debugger.\
+                message("ASRT", "Badge already exists %s".format(filename))
+
+            try:
+                out_file = open(filename, mode="wb+")
+                out_file.write(request.content)
+                out_file.close()
+            except Exception as e:
+                badgeomatic_globals.debugger.message("EXCP", e)
+
+            return filename
         except Exception as e:
             badgeomatic_globals.debugger.message("EXCP", e)
 
@@ -86,11 +120,13 @@ class Slackbot(object):
             # If it's a new message only with a file attachment,
             try:
                 if req.payload["event"]["type"] == "message" \
-                    and req.payload["event"].get("subtype") == "file_share":
+                        and req.payload["event"].get(
+                    "subtype") == "file_share":
                     badge_name = req.payload["event"]["text"]
                     file_url = req.payload["event"]["files"][0]["url_private"]
                     badgeomatic_globals.debugger.message("INFO",
-                                                         "Badge Name: {}".format(
+                                                         "Badge Name: {"
+                                                         "}".format(
                                                              badge_name))
                     badgeomatic_globals.debugger.message("INFO",
                                                          "File URL: {}".format(
@@ -99,7 +135,8 @@ class Slackbot(object):
                     if (len(badge_name) > 0) and \
                             (len(badge_name) < 30) and file_url:
                         badgeomatic_globals.debugger.message("INFO",
-                                                             "Generating badge...")
+                                                             "Generating "
+                                                             "badge...")
                         photo_path = self.download_attachment(file_url)
                         self.badgebot.print_badge(badge_name, photo_path)
             except Exception as e:
